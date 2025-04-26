@@ -18,7 +18,6 @@ plt.rcParams['axes.unicode_minus'] =False
 
 # 환경 변수에서 Base64 인코딩된 JSON 파일 내용 읽기
 GOOGLE_SHEET_SERVICE = os.environ.get("GOOGLE_SHEET_SERVICE")
-GOOGLE_SHEET_URL = os.environ.get("GOOGLE_SHEET_URL")
 
 if GOOGLE_SHEET_SERVICE:
     # Base64 디코딩
@@ -28,19 +27,10 @@ else:
     print("Error: GOOGLE_SHEET_SERVICE 환경 변수가 설정되지 않았습니다.")
     exit()
 
-if GOOGLE_SHEET_URL:
-    # Base64 디코딩
-    decoded_credentials = base64.b64decode(GOOGLE_SHEET_URL).decode('utf-8')
-    url_info = json.loads(decoded_credentials)
-else:
-    print("Error: GOOGLE_SHEET_URL 환경 변수가 설정되지 않았습니다.")
-    exit()
-
 # 인증
 gc = gspread.service_account(service_account_info)
-
+spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing'
 # 스프레드시트 열기
-spreadsheet_url = url_info
 doc = gc.open_by_url(spreadsheet_url)
 
 # 1번째 시트 선택
