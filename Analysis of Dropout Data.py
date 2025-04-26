@@ -5,19 +5,15 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import xgboost
 import shap
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from googleapiclient.discovery import build
 
-plt.rcParams['font.family'] ='Malgun Gothic'
-plt.rcParams['axes.unicode_minus'] =False
-
 
 # 환경 변수에서 Base64 인코딩된 JSON 파일 내용 읽기
-GOOGLE_SHEET_SERVICE = os.environ.get("GOOGLE_SHEET_SERVICE")
+GOOGLE_SHEET_SERVICE = 'service_account.json'
 
 if GOOGLE_SHEET_SERVICE:
     # Base64 디코딩
