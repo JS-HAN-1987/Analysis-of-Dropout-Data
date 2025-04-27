@@ -11,30 +11,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from googleapiclient.discovery import build
 
-import re
 
-# 환경 변수에서 Base64 인코딩된 JSON 내용 읽기
-GOOGLE_SHEET_SERVICE = os.getenv('GOOGLE_SHEET_SERVICE')
-
-if not GOOGLE_SHEET_SERVICE:
-    print("Error: GOOGLE_SHEET_SERVICE 환경 변수가 설정되지 않았습니다.")
-    exit()
-
+# service_account.json 파일을 직접 읽기
 try:
-    # 1. 모든 공백/줄바꿈 제거
-    encoded = re.sub(r'\s+', '', GOOGLE_SHEET_SERVICE)
+    with open('service_account.json') as f:
+        service_account_info = json.load(f)
 
-    # 2. 패딩 자동 보정
-    missing_padding = len(encoded) % 4
-    if missing_padding:
-        encoded += '=' * (4 - missing_padding)
-
-    # 3. 디코딩 및 JSON 파싱
-    decoded_credentials = base64.b64decode(encoded).decode('utf-8')
-    service_account_info = json.loads(decoded_credentials)
+    gc = gspread.service_account_from_dict(service_account_info)
+    doc = gc.open_by_url('https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing')
+    print("성공적으로 스프레드시트에 연결되었습니다.")
 
 except Exception as e:
-    print(f"Error processing credentials: {str(e)}")
+    print(f"Google Sheets 연결 실패: {str(e)}")
     exit()
 
 # 인증
