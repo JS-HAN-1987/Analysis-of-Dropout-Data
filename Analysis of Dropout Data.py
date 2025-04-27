@@ -12,9 +12,11 @@ from sklearn.metrics import mean_squared_error
 from googleapiclient.discovery import build
 
 
+json_file_path = 'service_account.json'
+
 # service_account.json 파일을 직접 읽기
 try:
-    with open('service_account.json') as f:
+    with open(json_file_path) as f:
         service_account_info = json.load(f)
 
     gc = gspread.service_account_from_dict(service_account_info)
