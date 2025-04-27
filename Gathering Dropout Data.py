@@ -266,8 +266,8 @@ new_columns = [
 column_mapping = dict(zip(old_columns, new_columns))
 # 컬럼명 교체
 merged_df.rename(columns=column_mapping, inplace=True)
-
-print(merged_df.head(5))
+merged_df['소년 범죄자율'] = merged_df['소년 범죄자율'] / 10000
+#print(merged_df.head(5))
 
 # 데이터프레임을 리스트로 변환 (인덱스 포함)
 data = [merged_df.columns.tolist()] + merged_df.values.tolist()
