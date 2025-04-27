@@ -34,7 +34,7 @@ jobs:
         python "Analysis of Dropout Data.py"
 
     - name: Upload artifacts (optional)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: output-files
         path: |
