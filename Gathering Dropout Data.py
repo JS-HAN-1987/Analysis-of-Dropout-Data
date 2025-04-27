@@ -231,6 +231,7 @@ for indicator in indicators:
 merged_df.index.names = ['연도']
 merged_df.reset_index(drop=False, inplace=True)
 # 2. 'p'가 포함된 행 삭제
+merged_df['연도'] = merged_df['연도'].astype(str)  # 문자열로 변환
 merged_df = merged_df[~merged_df['연도'].str.contains('p', na=False)]
 merged_df.set_index('연도', inplace=True)  # 연도 열을 인덱스로
 
