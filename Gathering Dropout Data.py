@@ -13,7 +13,8 @@ json_file_path = 'service_account.json'
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing"
 
 # 환경 변수에서 API 키 가져오기
-API_KEY = os.getenv('API_KEY')
+key = os.getenv('API_KEY')
+print( key)
 
 # service_account.json 파일을 직접 읽기
 try:
@@ -138,7 +139,7 @@ indicators = extract_indicator_codes_and_names(xml_content)
 merged_df = pd.DataFrame()  # 컬럼 이름을 원하는 대로 변경 가능
 
 for indicator in indicators:
-    base_url = f"https://www.index.go.kr/unity/openApi/xml_stts.do?idntfcId={API_KEY}&ixCode={indicator['지표코드']}&statsCode={indicator['통계코드']}&period=1999:2023"
+    base_url = f"https://www.index.go.kr/unity/openApi/xml_stts.do?idntfcId={key}&ixCode={indicator['지표코드']}&statsCode={indicator['통계코드']}&period=1999:2023"
     #print( indicator['통계명'] + '\t' + base_url)
     # URL에서 XML 데이터 가져오기
     response = requests.get(base_url)
@@ -262,6 +263,8 @@ new_columns = [
 column_mapping = dict(zip(old_columns, new_columns))
 # 컬럼명 교체
 merged_df.rename(columns=column_mapping, inplace=True)
+
+print(merged_df.head(5))
 
 # 데이터프레임을 리스트로 변환 (인덱스 포함)
 data = [merged_df.columns.tolist()] + merged_df.values.tolist()
