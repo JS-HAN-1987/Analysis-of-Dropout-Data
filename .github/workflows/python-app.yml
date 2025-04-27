@@ -30,10 +30,11 @@ jobs:
         ENCODED: ${{ secrets.GOOGLE_SHEET_SERVICE }}
       run: |
         echo "인코딩된 문자열 길이: ${#ENCODED}"
-        echo "마지막 5자: ${ENCODED: -5}"
-        # 임시로 파일에 저장하여 검증
-        echo "$ENCODED" > temp.txt
-        base64 -d temp.txt > decoded.json || echo "디코딩 실패!"
+        echo "처음 10자: ${ENCODED:0:10}"
+        echo "마지막 10자: ${ENCODED: -10}"
+        echo "$ENCODED" > raw.txt
+        cat raw.txt | tr -d '\n' > trimmed.txt
+        base64 -d trimmed.txt > decoded.json || echo "디코딩 실패!"
     - name: Decode service account
       env:
         ENCODED_CREDENTIALS: ${{ secrets.GOOGLE_SHEET_SERVICE }}
