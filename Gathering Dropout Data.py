@@ -12,9 +12,12 @@ import os
 json_file_path = 'service_account.json'
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing"
 
-# 환경 변수에서 API 키 가져오기
+# 환경 변수 가져오기
 key = os.getenv('API_KEY')
-print( key)
+if key:
+    print(f"API 키: {key}")
+else:
+    print("Error: API_KEY가 설정되지 않았습니다.")
 
 # service_account.json 파일을 직접 읽기
 try:
