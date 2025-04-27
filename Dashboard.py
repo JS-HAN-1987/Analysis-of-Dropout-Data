@@ -19,16 +19,12 @@ st.title("학업중단 요인분석")
 def load_data():
     # service_account.json 파일을 직접 읽기
     try:
-        with open(json_file_path) as f:
-            service_account_info = json.load(f)
-
+        service_account_info = st.secrets["gcp_service_account"]
         gc = gspread.service_account_from_dict(service_account_info)
-        doc = gc.open_by_url(spreadsheet_url)
-        print("성공적으로 스프레드시트에 연결되었습니다.")
-
+        doc = gc.open_by_url(st.secrets["spreadsheet_url"])
     except Exception as e:
-        print(f"Google Sheets 연결 실패: {str(e)}")
-        exit()
+        st.error(f"Google Sheets 연결 실패: {str(e)}")
+        st.stop()
 
     worksheets = doc.worksheets()
 
