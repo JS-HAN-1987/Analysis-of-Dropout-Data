@@ -39,14 +39,14 @@ except Exception as e:
     print(f"Google Sheets 연결 실패: {str(e)}")
     exit()
 
-# 1번째 시트 선택
-worksheet = doc.get_worksheet(0)  # 0번 인덱스 = 첫 번째 시트
-
 # 첫 번째 워크시트 제외 나머지 워크시트 삭제
 worksheets = doc.worksheets()
 for worksheet in worksheets[1:]:  # 첫 번째 워크시트를 제외한 나머지
+    print(f"워크시트 {worksheet.title} 삭제")
     doc.del_worksheet(worksheet)
-    print(f"워크시트 {worksheet.title} 삭제 완료")
+
+# 1번째 시트 선택
+worksheet = doc.get_worksheet(0)  # 0번 인덱스 = 첫 번째 시트
 
 # 모든 데이터 가져오기
 data = worksheet.get_all_records()

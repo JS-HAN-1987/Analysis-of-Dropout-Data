@@ -1,6 +1,8 @@
 name: Python Data Analysis CI
 
 on:
+  schedule:
+    - cron: '0 9 1 * *' # 매월 1일 오전 9시
   push:
     branches: [ "master" ]
   pull_request:
