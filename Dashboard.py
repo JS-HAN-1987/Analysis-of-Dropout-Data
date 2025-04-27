@@ -7,7 +7,7 @@ import json
 import gspread
 
 
-json_file_path = 'service_account.json'
+#json_file_path = 'service_account.json'
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing"
 
 # 앱 제목 설정
@@ -21,7 +21,7 @@ def load_data():
     try:
         service_account_info = st.secrets["gcp_service_account"]
         gc = gspread.service_account_from_dict(service_account_info)
-        doc = gc.open_by_url(st.secrets["spreadsheet_url"])
+        doc = gc.open_by_url(spreadsheet_url)
     except Exception as e:
         st.error(f"Google Sheets 연결 실패: {str(e)}")
         st.stop()
