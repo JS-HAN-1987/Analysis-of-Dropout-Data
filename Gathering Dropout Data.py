@@ -123,7 +123,7 @@ def GetDataFromGroup( aTable_name, aItemGroup):
     return data
 
 
-with open('데이터.xml', 'r', encoding='utf-8') as file:
+with open('통계데이터.xml', 'r', encoding='utf-8') as file:
     xml_content = file.read()
 
 # 함수 호출
