@@ -28,17 +28,6 @@ except Exception as e:
     print(f"Google Sheets 연결 실패: {str(e)}")
     exit()
 
-# 인증
-try:
-    gc = gspread.service_account_from_dict(service_account_info)
-    doc = gc.open_by_url(
-        'https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing')
-    print("성공적으로 스프레드시트에 연결되었습니다.")
-
-except Exception as e:
-    print(f"Google Sheets 연결 실패: {str(e)}")
-    exit()
-
 # 첫 번째 워크시트 제외 나머지 워크시트 삭제
 worksheets = doc.worksheets()
 for worksheet in worksheets[1:]:  # 첫 번째 워크시트를 제외한 나머지
