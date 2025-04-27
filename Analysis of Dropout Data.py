@@ -13,6 +13,7 @@ from googleapiclient.discovery import build
 
 
 json_file_path = 'service_account.json'
+spreadsheet_url = "https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing"
 
 # service_account.json 파일을 직접 읽기
 try:
@@ -20,7 +21,7 @@ try:
         service_account_info = json.load(f)
 
     gc = gspread.service_account_from_dict(service_account_info)
-    doc = gc.open_by_url('https://docs.google.com/spreadsheets/d/1DhfQFFR9gSV7plLLGgrqmNaohfbYW3Q9Fm_vuli8czI/edit?usp=sharing')
+    doc = gc.open_by_url(spreadsheet_url)
     print("성공적으로 스프레드시트에 연결되었습니다.")
 
 except Exception as e:
@@ -52,8 +53,8 @@ df = pd.DataFrame(data)
 df = df.drop(columns=['년도'])
 
 # 결측치 확인 및 처리
-print("결측치 수:")
-print(df.isnull().sum())
+#print("결측치 수:")
+#print(df.isnull().sum())
 
 # 결측치가 있는 경우 평균값으로 대체
 #data = data.fillna(data.mean())
