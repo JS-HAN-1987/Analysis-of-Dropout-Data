@@ -26,9 +26,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install pandas numpy xgboost shap gspread google-api-python-client
-        pip install scipy requests beautifulsoup4 lxml xmltodict
+        pip install pandas numpy scipy requests beautifulsoup4 lxml xmltodict
         pip install matplotlib seaborn plotly openpyxl pyarrow
+        pip install tensorflow gspread gspread-dataframe google-api-python-client
+        pip install xgboost shap
     - name: Use API Key
       env:
         API_KEY: ${{ secrets.API_KEY }}
@@ -65,5 +66,8 @@ jobs:
     - name: Run Python script
       run: |
         python "Analysis of Dropout Data.py"
+    - name: Run Python script
+      run: |
+        python "RNN.py"
         # 스크립트 실행 후 서비스 계정 파일 삭제 (보안 강화)
         rm -f service_account.json
