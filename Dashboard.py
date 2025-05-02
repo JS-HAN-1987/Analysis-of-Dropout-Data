@@ -15,67 +15,53 @@ apiKey = st.secrets["API_KEY"]
 st.title("학업중단 요인분석")
 
 
-# 데이터 해시 생성 및 숫자로 변환 함수
-def get_data_hash(df, additional_q=""):
-    # 데이터프레임을 문자열로 변환하고 추가 질문과 함께 해시
-    df_str = df.to_string()
-    combined_str = df_str + additional_q
-    # 해시 생성
-    hash_obj = hashlib.md5(combined_str.encode())
-    # 해시를 16진수 문자열로 변환 후 정수로 변환 (첫 10자리 사용)
-    hash_int = int(hash_obj.hexdigest(), 16) % (10 ** 10)  # 10자리 숫자로 제한
-    return hash_int
-
-
 # 엑셀 파일 로드
-@st.cache_data  # 성능 향상을 위한 캐싱
 def load_data():
-    # service_account.json 파일을 직접 읽기
+    """세션 상태를 활용한 안정적인 데이터 로드 함수"""
+    # 1. 연결 객체는 세션 상태에서 관리
+    if 'gsheets_conn' not in st.session_state:
+        try:
+            service_account_info = dict(st.secrets["gcp_service_account"])
+            #with open(json_file_path) as f:
+            #    service_account_info = json.load(f)
+            st.session_state.gc = gspread.service_account_from_dict(service_account_info)
+            st.session_state.doc = st.session_state.gc.open_by_url(spreadsheet_url)
+        except Exception as e:
+            st.error(f"Google Sheets 연결 실패: {str(e)}")
+            st.stop()
+
+    # 2. 데이터 로드 부분만 캐싱 (데이터 자체는 캐시 유지)
+    @st.cache_data(ttl=3600)  # 1시간 캐시
+    def _load_sheets_data(_doc):
+        worksheets = _doc.worksheets()
+        sheets = {}
+        for ws in worksheets:
+            name = ws.title
+            if name != "시트1" and not name.startswith("Cache_"):
+                data = ws.get_all_values()
+                if data:
+                    sheets[name] = pd.DataFrame(data[1:], columns=data[0])
+        return sheets
+
+    # 3. 캐시 시트 처리 (캐시에서 제외)
     try:
-        service_account_info = st.secrets["gcp_service_account"]
-        gc = gspread.service_account_from_dict(service_account_info)
-        doc = gc.open_by_url(spreadsheet_url)
-    except Exception as e:
-        st.error(f"Google Sheets 연결 실패: {str(e)}")
-        st.stop()
-
-    worksheets = doc.worksheets()
-
-    sheets = {}
-    for worksheet in worksheets:
-        name = worksheet.title
-        if name != "시트1" and not name.startswith("Cache_"):  # "시트1"과 캐시 시트는 제외
-            # worksheet 데이터를 DataFrame으로 변환
-            data = worksheet.get_all_values()
-            df = pd.DataFrame(data[1:], columns=data[0])  # 첫 줄을 컬럼 이름으로 사용
-            sheets[name] = df
-
-    # 캐시 시트 확인 및 생성
-    cache_sheet_name = "Cache_Results"
-    cache_worksheet = None
-
-    try:
-        cache_worksheet = doc.worksheet(cache_sheet_name)
+        cache_ws = st.session_state.doc.worksheet("Cache_Results")
     except gspread.WorksheetNotFound:
-        # 캐시 시트가 없으면 생성
-        cache_worksheet = doc.add_worksheet(title=cache_sheet_name, rows=1000, cols=3)
-        # 헤더 추가
-        cache_worksheet.update('A1:C1', [['sheet_name', 'data_hash', 'analysis_result']])
+        cache_ws = st.session_state.doc.add_worksheet("Cache_Results", 1000, 3)
+        cache_ws.update('A1:C1', [['sheet_name', 'data_hash', 'analysis_result']])
 
-    # 캐시 데이터 불러오기
-    cache_data = cache_worksheet.get_all_values()
+    # 4. 캐시 데이터 로드
+    cache_data = cache_ws.get_all_values()
     cache_df = pd.DataFrame(cache_data[1:], columns=cache_data[0]) if len(cache_data) > 1 else pd.DataFrame(
         columns=cache_data[0])
-
-    # data_hash 컬럼이 문자열로 읽혔을 수 있으므로 숫자로 변환
     if not cache_df.empty and 'data_hash' in cache_df.columns:
         cache_df['data_hash'] = pd.to_numeric(cache_df['data_hash'], errors='coerce').fillna(0).astype('int64')
 
+    # 5. 모델 초기화 (캐시에서 제외)
     genai.configure(api_key=apiKey)
-    # 모델 선택 (일반 대화용)
     model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
-    return sheets, model, doc, cache_worksheet, cache_df
 
+    return _load_sheets_data(st.session_state.doc), model, st.session_state.doc, cache_ws, cache_df
 
 # 데이터 로드
 sheets, model, doc, cache_worksheet, cache_df = load_data()
@@ -91,6 +77,15 @@ selected_sheet = st.selectbox(
 # 추가 질문 입력 필드
 additional_question = st.text_input("추가 분석 질문 (선택사항)", "")
 
+
+# 데이터 해시 생성 함수
+def get_data_hash(df, additional_q=""):
+    # 데이터프레임을 문자열로 변환하고 추가 질문과 함께 해시
+    df_str = df.to_string()
+    combined_str = df_str + additional_q
+    return hashlib.md5(combined_str.encode()).hexdigest()
+
+
 # 확인 버튼
 if st.button("확인"):
     st.subheader(f"{selected_sheet} 분석 결과")
@@ -102,18 +97,20 @@ if st.button("확인"):
     st.write("### 데이터 테이블")
     st.dataframe(df)
 
-    # 데이터 해시 계산 (숫자로 반환)
+    # 데이터 해시 계산
     data_hash = get_data_hash(df, additional_question)
 
     # 캐시에서 결과 검색
     cached_result = None
+    chart_title = ""
 
     # 캐시 데이터프레임에서 일치하는 항목 찾기
-    if not cache_df.empty and 'sheet_name' in cache_df.columns and 'data_hash' in cache_df.columns:
-        mask = (cache_df['sheet_name'] == selected_sheet) & (cache_df['data_hash'] == data_hash)
-        if mask.any():
-            cached_result = cache_df.loc[mask].iloc[0]['analysis_result']
-            st.success("캐시된 분석 결과를 불러왔습니다.")
+    mask = (cache_df['sheet_name'] == selected_sheet) & (cache_df['data_hash'] == data_hash)
+    if not cache_df.empty and mask.any():
+        cached_row = cache_df.loc[mask].iloc[0]
+        cached_result = cached_row['analysis_result']
+        chart_title = cached_row['chart_title']
+        st.success("캐시된 분석 결과를 불러왔습니다.")
 
     # 시트 유형에 따라 다른 시각화 제공
     if "SHAP" in selected_sheet or "Importance" in selected_sheet:
@@ -335,10 +332,11 @@ if st.button("확인"):
                 else:
                     response_text = response.text
 
-                # 캐시에 결과 저장 (시트 이름, 데이터 해시(숫자), 분석 결과)
+                # 캐시에 결과 저장
                 try:
-                    new_row = [selected_sheet, str(data_hash), response_text]  # 숫자를 문자열로 변환하여 저장
-                    cache_worksheet.append_row(new_row)
+                    # 기존 데이터에 새 행 추가
+                    new_row = [[selected_sheet, data_hash, additional_question, chart_title, response_text]]
+                    cache_worksheet.append_rows(new_row)
                     st.success("분석 결과가 캐시에 저장되었습니다.")
                 except Exception as e:
                     st.warning(f"캐시 저장 실패: {str(e)}")
