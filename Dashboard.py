@@ -3,9 +3,11 @@ from googleapiclient.discovery import build
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import google.generativeai as genai
 #import json
 import gspread
 import hashlib
+
 
 # json_file_path = 'service_account.json'
 spreadsheet_url = st.secrets["spreadsheet_url"]
